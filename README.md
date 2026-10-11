@@ -27,3 +27,5 @@ Ultra-lightweight and low-power gesture recognition algorithm for AI glasses and
 1. 切换回 main：git switch main
 2. 拉取最新代码：git pull
 3. 删除本地分支：git branch -d feature/你的名字-任务简述
+
+I am jackie. I am testing.
