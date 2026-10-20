@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# IDE and operating system
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Local datasets and sensitive captures
+data-local/
+captures/
+calibration-private/
+
+# Model and accelerator artifacts
+*.ckpt
+*.pth
+*.pt
+*.onnx
+*.tflite
+*.task
+*.hef
+models/checkpoints/
+models/exported/
+models/quantized/
+models/device/
+
+# Generated experiments and runtime output
+runs/
+logs/
+artifacts/
+reports/generated/
+*.jsonl
+
+# Local tooling output
+.codex/
+tmp/
+archives/
+

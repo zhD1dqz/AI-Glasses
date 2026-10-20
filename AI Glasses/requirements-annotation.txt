@@ -1,0 +1,6 @@
+# Minimal CPU environment for offline MediaPipe teacher annotation.
+# Use opencv-contrib-python only; do not install a second OpenCV wheel.
+# Validated together on Windows x64 / Python 3.13.2.
+mediapipe==1.1.1
+opencv-contrib-python==4.14.0.94
+numpy==2.5.4

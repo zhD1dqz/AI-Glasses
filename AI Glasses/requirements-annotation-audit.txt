@@ -1,0 +1,3 @@
+# Optional independent video decoding for annotation audits.
+-r requirements-annotation.txt
+av==19.0.1

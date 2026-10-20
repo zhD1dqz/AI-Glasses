@@ -1,0 +1,11 @@
+{
+  "source": "User-provided official-site download",
+  "source_filename": "hand_landmarker.task",
+  "reference_download_url": "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
+  "reference_url_is_independently_verified_provenance": false,
+  "sha256": "fbc2a30080c3c557093b5ddfc334698132eb341044ccee322ccf8bcf3607cde1",
+  "bytes": 7819105,
+  "bundle_members": ["hand_detector.tflite", "hand_landmarks_detector.tflite"],
+  "validation": "ZIP CRC passed; MediaPipe 1.1.1 HandLandmarker loaded on CPU",
+  "role": "MediaPipe teacher; not a trained student model"
+}

@@ -1,124 +1,66 @@
-# AI Glasses 端侧手势识别与眼部追踪
+# AI Glasses：轻量化手势识别与眼部追踪
 
-本项目是一个面向毕业设计的 AI 眼镜原型，目标是在资源受限的端侧设备上，同时完成第一视角手势识别和佩戴者眼部追踪，并在断网环境中持续运行。
+毕业设计项目。目标是用 MediaPipe 在电脑端生成伪标签，再训练轻量学生模型，最终在眼镜端离线识别手势、追踪佩戴者眼部。**目前完成的是手部数据标注与检查流程，不是最终识别系统。**
 
-项目不把直接调用 MediaPipe 当作最终成果。MediaPipe 主要承担教师模型和数据标注工具的角色：在开发机上生成手部、面部和眼部的关键点或伪标签，经过质量筛选后用于训练更小的学生模型。学生模型再经过剪枝、量化和端侧适配，部署到眼镜侧进行本地推理。
+## 现在能做什么
 
-当前仓库处于“项目框架和技术方案”阶段，只包含目录约定与设计文档，暂不包含训练和推理代码。
+- 用本地 MediaPipe Hand Landmarker 处理视频或图片，输出每帧的手部21点、时间戳、左右手信息和质量检查标记。
+- 保存不带关键点的原始图像，以及供人工检查的标注预览和统计报告。训练使用“原图 + 标签”，不是带连线的预览视频。
+- 检查全部帧、图像、时间戳及文件哈希，生成初筛候选和待复核清单。
+- 提供项目方案、目录规划及13项自动测试。
 
-## 核心目标
+**还没完成：**轻量学生模型训练、手势类别标注与分类、眼部伪标签与追踪、模型量化、眼镜硬件部署。现有 `.task` 是官方教师模型，不是我们训练的学生模型；自动伪标签也不等于人工真值。
 
-- 识别少量、明确且有交互价值的静态和动态手势。
-- 追踪眼部区域、眼睛开闭状态和注视方向或注视点。
-- 使用 MediaPipe 生成教师输出，通过伪标签或知识蒸馏训练轻量学生模型。
-- 将模型量化为适合 ARM CPU 或 NPU 的端侧格式，所有核心功能离线运行。
-- 通过状态机、ROI 跟踪、动态帧率和按需推理降低功耗。
-- 在真实设备上统一测量准确率、端到端延迟、抖动、内存、温度和能耗。
+## 组员先看这里
 
-## 典型交互
+拿到完整项目资料后，不用安装环境也可以先查看已生成的 [标注报告](data-local/annotations/public_pilot/woman_counting_on_fingers-686650a174d5/report.md)、[抽查图](data-local/annotations/public_pilot/woman_counting_on_fingers-686650a174d5/quality_check/spot_check.jpg) 和 [数据检查说明](data-local/annotations/public_pilot/woman_counting_on_fingers-686650a174d5/quality_check/README.md)。注意：这些示例在本地 `data-local/` 中，默认不会被 Git 上传，单独获取代码时可能没有这些文件。
 
-眼动负责“看向哪里”，手势负责“执行什么”。例如：
+当前公开样例共377帧，原图与标签全部保留；其中277帧为初筛候选、100帧待复核。候选尚未全部人工确认，且没有手势类别标签，不能直接当作完整手势分类训练集。它是第三人称流程验证样例，不代表眼镜第一视角效果。
 
-1. 用户注视某个界面目标。
-2. 眼部追踪模块输出稳定的焦点候选。
-3. 用户做出捏合手势进行确认，握拳执行返回或取消。
-4. 交互状态机结合置信度、持续时间和防抖规则输出最终事件。
-
-手势和眼动也可以单独运行，便于分阶段开发和消融实验。
-
-## 总体流程
+## 文件夹怎么用
 
 ```text
-数据采集
-  ├─ 前向相机：第一视角手部视频
-  └─ 内向相机：佩戴者眼部视频
-        ↓
-MediaPipe 教师推理与人工抽检
-        ↓
-伪标签清洗、坐标归一化、数据划分
-        ↓
-轻量学生模型训练与蒸馏
-  ├─ 手部检测/关键点/手势
-  └─ 眼部 ROI/眼部特征/注视与眨眼
-        ↓
-量化、导出与设备适配
-        ↓
-端侧离线运行时
-        ↓
-眼动与手势融合状态机
+tools/                  已实现：手部标注、标签检查脚本
+models/teacher/         本地 MediaPipe 教师模型与来源记录
+data-local/input/       把自己要标注的视频放这里
+data-local/examples/    公开示例视频及许可、来源信息
+data-local/annotations/ 已生成的原图、伪标签、预览和检查结果
+tests/                  自动测试及小型离线测试素材
+docs/                   使用指南、架构、蒸馏与评测等方案文档
+src/                    后续学生模型与运行时代码规划，尚未实现
+configs/                后续配置规范
+data/                   数据组织规范，不是实际样本目录
+experiments/            后续实验记录规范
+hardware/               后续硬件资料规范
+.venv/                  本机 Python 环境，不上传、不在组员间复制
 ```
 
-## 建议硬件形态
+根目录另有原始课题说明 `Topic3-Hand Recgonition.docx`、已填写的开题报告 `1. Proposal Template (BIT)_20230922.docx`（保留了模板文件名），以及 [开题报告 PDF 预览](docs/proposal-preview.pdf)。更完整的规划见 [项目结构](PROJECT_STRUCTURE.md)、[系统架构](docs/architecture.md) 和 [数据与蒸馏方案](docs/data-and-distillation.md)；这些方案不代表对应功能已实现。
 
-完整原型需要两路视觉输入：
+## 组员如何运行
 
-- 前向广角 RGB 相机：观察手部和外部环境。
-- 内向近眼相机：观察佩戴者眼睛；可先使用普通灰度或 RGB 相机验证，后续再评估近红外相机和补光。
-- ARM 端侧主机：负责采集、预处理、调度、状态机和界面。
-- 可选 NPU：加速 INT8 模型。
-- 功耗测量设备：记录电压、电流、功率与累计能量。
+获取项目文件后，在项目根目录打开 PowerShell。已验证环境为 Windows x64 + Python 3.13.2；每位组员应创建自己的环境，不要复制别人的 `.venv`：
 
-原始课题中的单个前向摄像头只能支持手势识别，不能直接完成佩戴者眼部追踪，因此硬件设计必须增加内向相机或等效的近眼成像光路。
-
-## 仓库结构
-
-```text
-AI Glasses/
-├─ README.md                  # 项目入口和快速导航
-├─ PROJECT_STRUCTURE.md       # 目录职责、数据流和命名约定
-├─ Topic3-Hand Recgonition.docx
-│                              # 原始课题说明，保留为需求来源
-├─ docs/                       # 产品与技术设计文档
-├─ src/                        # 后续实现代码的模块边界说明
-├─ data/                       # 数据集规范；真实数据不提交到仓库
-├─ models/                     # 模型生命周期与产物规范
-├─ configs/                    # 训练、导出、运行配置规范
-├─ experiments/                # 实验记录与对比结果规范
-├─ hardware/                   # 相机、算力板、供电和装配资料
-├─ tests/                      # 测试层级和验收用例规范
-└─ tools/                      # 数据处理、导出、评测工具的预留目录
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements-annotation.txt
 ```
 
-## 文档导航
+当前本地文件夹已包含教师模型；如果只获取 Git 中的代码且模型缺失，先运行 `.\.venv\Scripts\python.exe tools\annotate_hands.py --download-model` 显式下载。把视频放入 `data-local/input/`，双击 `开始手部标注.cmd` 即可；结果生成在 `data-local/annotations/`。默认检测一只手、每5帧保存一张原图，标签逐帧保存。更密集保存、双手检测及公开样例复现见 [手部标注指南](docs/hand-annotation-quickstart.md)。依赖安装完成且本地模型齐全后，标注过程不需联网。
 
-- [需求与范围](docs/requirements.md)
-- [系统架构](docs/architecture.md)
-- [数据与蒸馏方案](docs/data-and-distillation.md)
-- [端侧部署方案](docs/edge-deployment.md)
-- [评测方案](docs/evaluation.md)
-- [开发路线图](docs/roadmap.md)
-- [项目结构说明](PROJECT_STRUCTURE.md)
+运行测试：
 
-## 推荐实施顺序
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p "test_hand_annotation.py" -v
+```
 
-1. 完成双摄像头数据采集和时间戳同步。
-2. 用 MediaPipe 建立教师基线并生成可审计的伪标签。
-3. 先分别训练手部和眼部学生模型，再做多任务或融合实验。
-4. 建立浮点模型基线，然后依次进行剪枝、蒸馏和 INT8 量化。
-5. 接入端侧运行时、动态调度和交互状态机。
-6. 在真实硬件上完成准确率、延迟、功耗和温升对比。
+如需对新任务执行完整数据检查，还需安装 `requirements-annotation-audit.txt`，详见 [工具说明](tools/README.md)。已有样例不必重新运行。
 
-## 离线运行原则
+## 同步说明与下一步
 
-- 运行时不得依赖云端 API、在线下载或远程鉴权。
-- 模型、类别表、归一化参数和配置随设备镜像一同发布。
-- 启动时校验模型版本和文件哈希，缺失时明确报错，不静默联网下载。
-- 原始眼部视频默认只保存在本地，并遵循受试者知情同意和最小化采集原则。
+直接同步项目文件即可，不需要额外生成分享压缩包。代码、文档、依赖清单和小型测试素材可以上传；不要上传本机环境 `.venv/`、缓存、失败任务或 `archives/` 清理备份。
 
-## 技术参考
+当前 `.gitignore` 默认排除 `data-local/` 和模型二进制，避免误传以后采集的私人视频。需要让组员一起获得现有公开示例、标注结果及教师模型时，应明确将这部分公开资料纳入同步范围或另外分发，不要直接取消整个数据目录的隐私保护。
 
-- [MediaPipe Hand Landmarker](https://ai.google.dev/edge/api/mediapipe/python/mp/tasks/vision/HandLandmarkerOptions)
-- [MediaPipe Face Landmarker](https://ai.google.dev/edge/api/mediapipe/python/mp/tasks/vision/FaceLandmarkerOptions)
-- [MediaPipe Vision Tasks](https://ai.google.dev/edge/api/mediapipe/python/mp/tasks/vision)
-
-## 当前状态
-
-- [x] 梳理原始手势识别课题要求
-- [x] 将眼部追踪纳入正式范围
-- [x] 建立仓库目录与文档骨架
-- [ ] 确定最终硬件和摄像头方案
-- [ ] 定义数据集与标注格式
-- [ ] 实现 MediaPipe 教师数据管线
-- [ ] 训练和量化学生模型
-- [ ] 完成端侧集成与实验报告
+下一步先确定手势类别并补充多人员、第一视角数据，复核伪标签后训练一个小型手部学生模型，在电脑端验证。眼部方向需另行采集面向佩戴者眼睛的数据并验证标注方案，不能直接用现有手部模型替代。
 
